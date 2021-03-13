@@ -131,9 +131,11 @@ class PlaybackToolbar(AbstractToolbar):
         self.seek_frame_control = FrameEdit[FrameInterval](self)
         self.seek_frame_control.setMinimum(FrameInterval(1))
         self.seek_frame_control.setToolTip('Seek N Frames Step')
+        self.seek_frame_control.setValue(FrameInterval(24))
         layout.addWidget(self.seek_frame_control)
 
         self.seek_time_control = TimeEdit[TimeInterval](self)
+        self.seek_time_control.setValue(TimeInterval(seconds=1, milliseconds=1))
         layout.addWidget(self.seek_time_control)
 
         self.fps_spinbox = Qt.QDoubleSpinBox(self)

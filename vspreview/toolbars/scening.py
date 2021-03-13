@@ -287,6 +287,7 @@ class SceningToolbar(AbstractToolbar):
         self.scening_list_dialog = SceningListDialog(self.main)
 
         self.supported_file_types = {
+            'OGM Chapters (*.txt)'          : self.import_ogm_chapters,
             'Aegisub Project (*.ass)'       : self.import_ass,
             'AvsP Session (*.ses)'          : self.import_ses,
             'CUE Sheet (*.cue)'             : self.import_cue,
