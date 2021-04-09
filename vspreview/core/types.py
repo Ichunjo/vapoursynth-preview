@@ -672,6 +672,19 @@ class Output(YAMLObject):
         BOTTOM_LEFT = values[4]
         BOTTOM      = values[5]
 
+    class DitherType:
+        values = {
+            0: 'none',
+            1: 'ordered',
+            2: 'random',
+            3: 'error_diffusion'
+        }
+
+        NONE            = values[0]
+        ORDERED         = values[1]
+        RANDOM          = values[2]
+        ERROR_DIFFUSION = values[3]
+
     storable_attrs = (
         'name', 'last_showed_frame', 'play_fps',
         'frame_to_show',
@@ -751,6 +764,7 @@ class Output(YAMLObject):
             'range_in_s'    : self.main.VS_OUTPUT_RANGE,
             'chromaloc_in_s': self.main.VS_OUTPUT_CHROMALOC,
             'prefer_props'  : self.main.VS_OUTPUT_PREFER_PROPS,
+            'dither_type'   : self.main.VS_OUTPUT_DITHER_TYPE
         }
 
         if not alpha:
