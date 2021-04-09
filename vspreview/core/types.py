@@ -762,7 +762,7 @@ class Output(YAMLObject):
         is_subsampled = (vs_output.format.subsampling_w != 0
                          or vs_output.format.subsampling_h != 0)
         if not is_subsampled:
-            resizer = self.Resizer.Point
+            resizer = self.Resizer.Bicubic
 
         if vs_output.format.color_family == vs.RGB:
             del resizer_kwargs['matrix_in_s']
