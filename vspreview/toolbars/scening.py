@@ -815,7 +815,7 @@ class SceningToolbar(AbstractToolbar):
             root = ElementTree.parse(str(path)).getroot()
         except ElementTree.ParseError as exc:
             logging.warning(
-                f'Scening import: error occured'
+                'Scening import: error occured'
                 ' while parsing \'{path.name}\':')
             logging.warning(exc.msg)
             return

@@ -901,10 +901,10 @@ class Output(YAMLObject):
             self.last_showed_frame = state['last_showed_frame']
         except (KeyError, TypeError):
             logging.warning(
-                f'Storage loading: Output: failed to parse last showed frame.')
+                'Storage loading: Output: failed to parse last showed frame.')
         except IndexError:
             logging.warning(
-                f'Storage loading: Output: last showed frame is out of range.')
+                'Storage loading: Output: last showed frame is out of range.')
 
         try:
             for scening_list in state['scening_lists']:
@@ -920,10 +920,10 @@ class Output(YAMLObject):
                 self.play_fps = play_fps
         except (KeyError, TypeError):
             logging.warning(
-                f'Storage loading: Output: play fps weren\'t parsed successfully.')
+                'Storage loading: Output: play fps weren\'t parsed successfully.')
 
         try:
             self.frame_to_show = state['frame_to_show']
         except (KeyError, TypeError):
             logging.warning(
-                f'Storage loading: Output: failed to parse frame to show.')
+                'Storage loading: Output: failed to parse frame to show.')
