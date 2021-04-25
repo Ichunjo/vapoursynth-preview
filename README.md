@@ -29,3 +29,11 @@ pip modules:
 `mypy pycodestyle pylint pyqt5-stubs`
 
 PyQt5 stubs may be incomplete when it comes to signals.
+
+# Changes made
+ * Checkbox `Sync Outputs` default to checked.
+ * Tooltip `Seek N Frames Step` default to 24 frames or 1 second and 1 millisecond.
+ * Add `OGM Chapters` type chapter to the top of the list.
+ * Use Bicubic instead of Point for subsampled preview.
+ * Add DitherType class. Still default to None.
+ * AZERTY input.
