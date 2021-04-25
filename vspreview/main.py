@@ -329,7 +329,7 @@ class MainWindow(AbstractMainWindow):
     VS_OUTPUT_RANGE           = Output.Range.LIMITED
     VS_OUTPUT_CHROMALOC       = Output.ChromaLoc.LEFT
     VS_OUTPUT_PREFER_PROPS    = True
-    VS_OUTPUT_DITHER_TYPE     = Output.DitherType.ERROR_DIFFUSION
+    VS_OUTPUT_DITHER_TYPE     = Output.DitherType.NONE
     VS_OUTPUT_RESIZER_KWARGS  = {}  # type: Mapping[str, str]
 
     BENCHMARK_FRAME_DATA_SHARING_FIX  =  True
