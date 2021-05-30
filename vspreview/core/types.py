@@ -677,11 +677,29 @@ class Output(YAMLObject):
         'frame_to_show',
     )
     __slots__ = storable_attrs + (
+        # API V4 Support
+        # 'vs_output', 'qt_output', 'index', 'width', 'height',
+        # 'fps_num', 'fps_den', 'format', 'total_frames', 'total_time',
+        # 'graphics_scene_item', 'end_frame', 'end_time', 'fps', 'has_alpha',
+        # 'vs_alpha', 'format_alpha', 'props', 'source_vs_output',
+        # 'source_vs_alpha', 'main', 'checkerboard', "__weakref__",
+        # "cur_frame" # hack to keep the reference to the current frame
+
+        # VFR Support
+        # 'vs_output', 'index', 'width', 'height',
+        # 'fps_num', 'fps_den', 'format', 'total_frames', '_total_time',
+        # 'graphics_scene_item', 'end_frame', '_end_time', '_fps', 'has_alpha',
+        # 'vs_alpha', 'format_alpha', 'props', 'source_vs_output',
+        # 'source_vs_alpha', 'main', 'checkerboard', "__weakref__",
+        # 'vfr'
+
+        # Fix
         'vs_output', 'qt_output', 'index', 'width', 'height',
-        'fps_num', 'fps_den', 'format', 'total_frames', 'total_time',
-        'graphics_scene_item', 'end_frame', 'end_time', 'fps', 'has_alpha',
+        'fps_num', 'fps_den', 'format', 'total_frames', '_total_time',
+        'graphics_scene_item', 'end_frame', '_end_time', '_fps', 'has_alpha',
         'vs_alpha', 'format_alpha', 'props', 'source_vs_output',
         'source_vs_alpha', 'main', 'checkerboard', "__weakref__",
+        'vfr',
         "cur_frame" # hack to keep the reference to the current frame
     )
 
@@ -714,12 +732,16 @@ class Output(YAMLObject):
         self.props        = self.source_vs_output.get_frame(0).props
         self.fps_num      = self.vs_output.fps.numerator
         self.fps_den      = self.vs_output.fps.denominator
-        self.fps          = self.fps_num / self.fps_den
+        self.vfr          = True if self.fps_num == 0 and self.fps_den == 1 else False
+
         self.total_frames = FrameInterval(self.vs_output.num_frames)
-        self.total_time   = self.to_time_interval(self.total_frames
-                                                  - FrameInterval(1))
         self.end_frame    = Frame(int(self.total_frames) - 1)
-        self.end_time     = self.to_time(self.end_frame)
+
+        if not self.vfr:
+            self._fps        = self.fps_num / self.fps_den
+            self._total_time = self.to_time_interval(self.total_frames
+                                                     - FrameInterval(1))
+            self._end_time   = self.to_time(self.end_frame)
 
         if self.has_alpha:
             self.checkerboard = self._generate_checkerboard()
@@ -737,9 +759,27 @@ class Output(YAMLObject):
                 or self.last_showed_frame > self.end_frame):
             self.last_showed_frame: Frame = Frame(0)
         if not hasattr(self, 'play_fps'):
-            self.play_fps = self.fps_num / self.fps_den
+            self.play_fps = self.fps_num / self.fps_den if not self.vfr else 24000 / 1001
         if not hasattr(self, 'frame_to_show'):
             self.frame_to_show: Optional[Frame] = None
+
+    @property
+    def total_time(self) -> TimeInterval:
+        if self.vfr:
+            raise RuntimeError('VFR clip was asked about total_time')
+        return self._total_time
+
+    @property
+    def end_time(self) -> Time:
+        if self.vfr:
+            raise RuntimeError('VFR clip was asked about end_time')
+        return self._end_time
+
+    @property
+    def fps(self) -> float:
+        if self.vfr:
+            raise RuntimeError('VFR clip was asked about fps')
+        return self._fps
 
     def prepare_vs_output(self, vs_output: vs.VideoNode, alpha: bool = False) -> vs.VideoNode:
         resizer = self.main.VS_OUTPUT_RESIZER
