@@ -677,14 +677,15 @@ class Output(YAMLObject):
         'frame_to_show',
     )
     __slots__ = storable_attrs + (
-        'vs_output', 'index', 'width', 'height', 'fps_num', 'fps_den',
-        'format', 'total_frames', 'total_time', 'graphics_scene_item',
-        'end_frame', 'end_time', 'fps', 'has_alpha', 'vs_alpha',
-        'format_alpha', 'props', 'source_vs_output', 'source_vs_alpha',
-        'main', 'checkerboard', "__weakref__"
+        'vs_output', 'qt_output', 'index', 'width', 'height',
+        'fps_num', 'fps_den', 'format', 'total_frames', 'total_time',
+        'graphics_scene_item', 'end_frame', 'end_time', 'fps', 'has_alpha',
+        'vs_alpha', 'format_alpha', 'props', 'source_vs_output',
+        'source_vs_alpha', 'main', 'checkerboard', "__weakref__",
+        "cur_frame" # hack to keep the reference to the current frame
     )
 
-    def __init__(self, vs_output: Union[vs.VideoNode, vs.AlphaOutputTuple], index: int) -> None:
+    def __init__(self, vs_output: vs.VideoOutputTuple, index: int) -> None:
         from vspreview.models  import SceningLists
         from vspreview.utils   import main_window
         from vspreview.widgets import GraphicsImageItem
@@ -693,20 +694,19 @@ class Output(YAMLObject):
 
         # runtime attributes
 
-        if isinstance(vs_output, vs.AlphaOutputTuple):
+        self.has_alpha = False
+        self.source_vs_output = vs_output.clip
+        if vs_output.alpha is not None:
             self.has_alpha = True
-            self.source_vs_output = vs_output.clip
-            self.source_vs_alpha  = vs_output.alpha
+            self.source_vs_alpha = vs_output.alpha
 
-            self.vs_alpha = self.prepare_vs_output(self.source_vs_alpha,
-                                                   alpha=True)
-            self.format_alpha = self.source_vs_alpha.format
-        else:
-            self.has_alpha = False
-            self.source_vs_output = vs_output
+            self.vs_alpha        = self.prepare_vs_output(self.source_vs_alpha, alpha=True)
+            self.format_alpha    = self.source_vs_alpha.format
 
         self.index        = index
 
+        # self.qt_output    = Qt.QImage.Format_RGB30 if self.source_vs_output.format.bits_per_sample > 8 else Qt.QImage.Format_RGB32
+        self.qt_output    = Qt.QImage.Format_RGB32
         self.vs_output    = self.prepare_vs_output(self.source_vs_output)
         self.width        = self.vs_output.width
         self.height       = self.vs_output.height
@@ -743,21 +743,17 @@ class Output(YAMLObject):
 
     def prepare_vs_output(self, vs_output: vs.VideoNode, alpha: bool = False) -> vs.VideoNode:
         resizer = self.main.VS_OUTPUT_RESIZER
+        # high_depth_possible = vs_output.format.bits_per_sample > 8
         resizer_kwargs = {
-            'format'        : vs.COMPATBGR32,
+            # 'format'        : vs.RGB30 if high_depth_possible else vs.RGB24,
+            'format'        : vs.RGB24,
+            # 'format'        : vs.RGB30,
             'matrix_in_s'   : self.main.VS_OUTPUT_MATRIX,
             'transfer_in_s' : self.main.VS_OUTPUT_TRANSFER,
             'primaries_in_s': self.main.VS_OUTPUT_PRIMARIES,
             'range_in_s'    : self.main.VS_OUTPUT_RANGE,
             'chromaloc_in_s': self.main.VS_OUTPUT_CHROMALOC,
-            'prefer_props'  : self.main.VS_OUTPUT_PREFER_PROPS,
         }
-
-        if not alpha:
-            vs_output = vs.core.std.FlipVertical(vs_output)
-
-        if vs_output.format == vs.COMPATBGR32:  # type: ignore
-            return vs_output
 
         is_subsampled = (vs_output.format.subsampling_w != 0
                          or vs_output.format.subsampling_h != 0)
@@ -774,8 +770,19 @@ class Output(YAMLObject):
 
         vs_output = resizer(vs_output, **resizer_kwargs,
                             **self.main.VS_OUTPUT_RESIZER_KWARGS)
-
-        return vs_output
+        if alpha:
+            return vs_output
+        else:
+            try:
+                vs_output = vs.core.libp2p.Pack(vs_output)
+                # vs_output = vs.core.std.Expr(vs_output.std.SplitPlanes(), 'x 1048576 * y 1024 * + z + 3221225472 +', vs.GRAYS)
+                # vs_output = vs.core.akarin.Expr(vs_output.std.SplitPlanes(), 'x 0x100000 * y 0x400 * + z + 0xc0000000 +', vs.GRAY32, opt=1)
+                # vs_output = vs.core.akarin.Expr(vs_output.std.SplitPlanes(), 'x 1048576 * y 1024 * + z + 3221225472 +', vs.GRAY32, opt=1)
+            except AttributeError as attr_err:
+                raise ModuleNotFoundError(
+                    "LibP2P required to prepare output clips."
+                ) from attr_err
+            return vs_output
 
     def render_frame(self, frame: Frame) -> Qt.QImage:
         if not self.has_alpha:
@@ -787,6 +794,7 @@ class Output(YAMLObject):
                 self.vs_alpha.get_frame(int(frame)))
 
     def render_raw_videoframe(self, vs_frame: vs.VideoFrame, vs_frame_alpha: Optional[vs.VideoFrame] = None) -> Qt.QImage:
+        self.cur_frame = (vs_frame, vs_frame_alpha) # keep a reference to the current frame
         # powerful spell. do not touch
         frame_data_pointer = ctypes.cast(
             vs_frame.get_read_ptr(0),
@@ -796,7 +804,7 @@ class Output(YAMLObject):
         )
         frame_image = Qt.QImage(
             frame_data_pointer.contents, vs_frame.width, vs_frame.height,
-            vs_frame.get_stride(0), Qt.QImage.Format_RGB32)
+            vs_frame.get_stride(0), self.qt_output)
 
         if vs_frame_alpha is None:
             return frame_image
