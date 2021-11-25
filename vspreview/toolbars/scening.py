@@ -287,6 +287,8 @@ class SceningToolbar(AbstractToolbar):
         self.scening_list_dialog = SceningListDialog(self.main)
 
         self.supported_file_types = {
+            'Matroska XML Chapters (*.xml)' : self.import_matroska_xml_chapters,
+            'OGM Chapters (*.txt)'          : self.import_ogm_chapters,
             'Aegisub Project (*.ass)'       : self.import_ass,
             'AvsP Session (*.ses)'          : self.import_ses,
             'CUE Sheet (*.cue)'             : self.import_cue,
@@ -296,8 +298,6 @@ class SceningToolbar(AbstractToolbar):
             'Matroska Timestamps v1 (*.txt)': self.import_matroska_timestamps_v1,
             'Matroska Timestamps v2 (*.txt)': self.import_matroska_timestamps_v2,
             'Matroska Timestamps v3 (*.txt)': self.import_matroska_timestamps_v3,
-            'Matroska XML Chapters (*.xml)' : self.import_matroska_xml_chapters,
-            'OGM Chapters (*.txt)'          : self.import_ogm_chapters,
             'TFM Log (*.txt)'               : self.import_tfm,
             'VSEdit Bookmarks (*.bookmarks)': self.import_vsedit,
             'x264/x265 2 Pass Log (*.log)'  : self.import_x264_2pass_log,
@@ -335,8 +335,8 @@ class SceningToolbar(AbstractToolbar):
         add_shortcut(Qt.Qt.CTRL  + Qt.Qt.Key_Space, self.on_toggle_single_frame)
         add_shortcut(Qt.Qt.CTRL  + Qt.Qt.Key_Left,  self.seek_to_prev_button         .click)
         add_shortcut(Qt.Qt.CTRL  + Qt.Qt.Key_Right, self.seek_to_next_button         .click)
-        add_shortcut(              Qt.Qt.Key_Q,     self.toggle_first_frame_button   .click)
-        add_shortcut(              Qt.Qt.Key_W,     self.toggle_second_frame_button  .click)
+        add_shortcut(              Qt.Qt.Key_A,     self.toggle_first_frame_button   .click)
+        add_shortcut(              Qt.Qt.Key_Z,     self.toggle_second_frame_button  .click)
         add_shortcut(              Qt.Qt.Key_E,     self.add_to_list_button          .click)
         add_shortcut(              Qt.Qt.Key_R,     self.remove_last_from_list_button.click)
 
