@@ -44,3 +44,10 @@ pip modules:
 `mypy pycodestyle pylint pyqt5-stubs`
 
 PyQt5 stubs may be incomplete when it comes to signals.
+
+# Changes made
+ * Checkbox `Sync Outputs` default to checked.
+ * `SEEK_STEP` default to 24.
+ * Add `OGM Chapters` type chapter to the top of the list.
+ * AZERTY input.
+ * Automatic PNG compression
