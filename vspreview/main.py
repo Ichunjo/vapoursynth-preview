@@ -332,15 +332,15 @@ class MainWindow(AbstractMainWindow):
     FPS_REFRESH_INTERVAL      =   150  # ms
     LOG_LEVEL         = logging.DEBUG
     OPENGL_RENDERING          = False
-    ORDERED_OUTPUTS           = False
+    ORDERED_OUTPUTS           = True
     OUTPUT_INDEX              =     0
     PLAY_BUFFER_SIZE = FrameInterval(get_usable_cpus_count())
-    PNG_COMPRESSION_LEVEL     =     0  # 0 - 100
+    PNG_COMPRESSION_LEVEL     =    -1  # 0 - 100
     SAVE_TEMPLATE = '{script_name}_{frame}'
-    SEEK_STEP                 =     1  # frames
+    SEEK_STEP                 =    24  # frames
     STATUSBAR_MESSAGE_TIMEOUT =     3 * 1000  # s
     STORAGE_BACKUPS_COUNT     =     2
-    SYNC_OUTPUTS              = False
+    SYNC_OUTPUTS              = True
     # it's allowed to stretch target interval betweewn notches by N% at most
     TIMELINE_LABEL_NOTCHES_MARGIN = 20  # %
     TIMELINE_MODE             = 'frame'
