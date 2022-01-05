@@ -705,8 +705,8 @@ class Output(YAMLObject):
 
         self.index        = index
 
-        self.qt_output    = Qt.QImage.Format_RGB30 if self.source_vs_output.format.bits_per_sample > 8 and hasattr(
-            vs.core, 'libp2p') else Qt.QImage.Format_RGB32
+        # self.qt_output    = Qt.QImage.Format_RGB30 if self.source_vs_output.format.bits_per_sample > 8 else Qt.QImage.Format_RGB32
+        self.qt_output    = Qt.QImage.Format_RGB32
         self.vs_output    = self.prepare_vs_output(self.source_vs_output)
         self.width        = self.vs_output.width
         self.height       = self.vs_output.height
@@ -743,15 +743,16 @@ class Output(YAMLObject):
 
     def prepare_vs_output(self, vs_output: vs.VideoNode, alpha: bool = False) -> vs.VideoNode:
         resizer = self.main.VS_OUTPUT_RESIZER
-        high_depth_possible = vs_output.format.bits_per_sample > 8 and hasattr(vs.core, 'libp2p')
+        # high_depth_possible = vs_output.format.bits_per_sample > 8
         resizer_kwargs = {
-            'format'        : vs.RGB30 if high_depth_possible else vs.RGB24,
+            # 'format'        : vs.RGB30 if high_depth_possible else vs.RGB24,
+            'format'        : vs.RGB24,
+            # 'format'        : vs.RGB30,
             'matrix_in_s'   : self.main.VS_OUTPUT_MATRIX,
             'transfer_in_s' : self.main.VS_OUTPUT_TRANSFER,
             'primaries_in_s': self.main.VS_OUTPUT_PRIMARIES,
             'range_in_s'    : self.main.VS_OUTPUT_RANGE,
             'chromaloc_in_s': self.main.VS_OUTPUT_CHROMALOC,
-            'prefer_props'  : self.main.VS_OUTPUT_PREFER_PROPS,
         }
 
         is_subsampled = (vs_output.format.subsampling_w != 0
@@ -772,15 +773,15 @@ class Output(YAMLObject):
         if alpha:
             return vs_output
         else:
-            if hasattr(vs.core, 'libp2p'):
+            try:
                 vs_output = vs.core.libp2p.Pack(vs_output)
-            elif hasattr(vs.core, 'akarin'):
-                fmt       = vs.core.query_video_format(vs.GRAY, vs.INTEGER, 32, 0, 0)
-                vs_output = vs.core.akarin.Expr([vs.core.std.ShufflePlanes(vs_output, i, vs.GRAY) for i in range(
-                    3)], f'x {0x10000} * y {0x100} * + z + {0xff} {0x1000000} * +', fmt, opt=1)
-            else:
-                raise ModuleNotFoundError("LibP2P or akarin.Expr required to prepare output clips.")
-
+                # vs_output = vs.core.std.Expr(vs_output.std.SplitPlanes(), 'x 1048576 * y 1024 * + z + 3221225472 +', vs.GRAYS)
+                # vs_output = vs.core.akarin.Expr(vs_output.std.SplitPlanes(), 'x 0x100000 * y 0x400 * + z + 0xc0000000 +', vs.GRAY32, opt=1)
+                # vs_output = vs.core.akarin.Expr(vs_output.std.SplitPlanes(), 'x 1048576 * y 1024 * + z + 3221225472 +', vs.GRAY32, opt=1)
+            except AttributeError as attr_err:
+                raise ModuleNotFoundError(
+                    "LibP2P required to prepare output clips."
+                ) from attr_err
             return vs_output
 
     def render_frame(self, frame: Frame) -> Qt.QImage:
